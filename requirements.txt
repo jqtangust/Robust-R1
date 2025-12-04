@@ -1,0 +1,12 @@
+torch>=2.5.1
+transformers==4.49.0
+gradio>=4.0.0
+qwen-vl-utils>=0.0.1
+accelerate>=1.2.1
+sentencepiece>=0.1.99
+pillow
+safetensors>=0.3.3
+huggingface-hub>=0.19.2,<1.0
+einops>=0.8.0
+packaging>=23.0
+numpy>=1.21.0
