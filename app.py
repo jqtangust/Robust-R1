@@ -1,193 +1,284 @@
-import os
 import gradio as gr
+import os
 import torch
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
 from qwen_vl_utils import process_vision_info
+import html
 
-MODEL_PATH = os.getenv("MODEL_PATH", "Jiaqi-hkust/Robust-R1")
-
-model = None
-processor = None
-
-def load_model():
-    global model, processor
-    if model is None or processor is None:
-        print(f"Loading model: {MODEL_PATH}")
-        try:
-            model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-                MODEL_PATH,
-                torch_dtype=torch.bfloat16,
-                device_map="auto",
-            )
-            processor = AutoProcessor.from_pretrained(MODEL_PATH)
-            print("Model loaded successfully!")
-        except Exception as e:
-            print(f"Error loading model: {e}")
-            raise e
-    return model, processor
-
-def inference(image, question, max_new_tokens, temperature):
-    try:
-        model, processor = load_model()
-        if image is None: return "⚠️ Error: Please upload an image."
-        if not question or question.strip() == "": return "⚠️ Error: Please enter your question."
-        
-        sys_prompt = """First output the the types of degradations in image briefly in <TYPE> <TYPE_END> tags, 
+sys_prompt = """First output the the types of degradations in image briefly in <TYPE> <TYPE_END> tags, 
         and then output what effects do these degradation have on the image in <INFLUENCE> <INFLUENCE_END> tags, 
         then based on the strength of degradation, output an APPROPRIATE length for the reasoning process in <REASONING> <REASONING_END> tags, 
         and then summarize the content of reasoning and the give the answer in <CONCLUSION> <CONCLUSION_END> tags,
         provides the user with the answer briefly in <ANSWER> <ANSWER_END>."""
 
-        messages = [{"role": "user", "content": [{"type": "image", "image": image}, {"type": "text", "text": f"{question}\n\n{sys_prompt}"}]}]
-        text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        image_inputs, video_inputs = process_vision_info(messages)
-        inputs = processor(text=[text], images=image_inputs, videos=video_inputs, padding=True, return_tensors="pt")
-        device = next(model.parameters()).device
-        inputs = inputs.to(device)
-        generated_ids = model.generate(**inputs, max_new_tokens=max_new_tokens, temperature=temperature, do_sample=True if temperature > 0 else False)
-        generated_ids_trimmed = [out_ids[len(in_ids):] for in_ids, out_ids in zip(inputs.input_ids, generated_ids)]
-        output_text = processor.batch_decode(generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False)
-        return output_text[0]
-    except Exception as e:
-        return f"An error occurred: {str(e)}"
+project_dir = os.path.dirname(os.path.abspath(__file__))
+temp_dir = os.path.join(project_dir, ".gradio_temp")
+os.makedirs(temp_dir, exist_ok=True)
+os.environ["GRADIO_TEMP_DIR"] = temp_dir
 
-custom_css = """
-body, .gradio-container, .prose {
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
-}
+MODEL_PATH = os.getenv("MODEL_PATH", "")
 
-.header-title {
-    font-weight: 700; 
-    letter-spacing: -0.025em;
-    background: linear-gradient(to right, #fff, #ccc);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
+if not MODEL_PATH:
+    raise ValueError("MODEL_PATH environment variable must be set. Please set it to your model path.")
 
-.result-box textarea, .result-box .wrap {
-    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important; 
-    font-size: 14px !important;
-    line-height: 1.7 !important;
-    background-color: #18181b !important;
-    border: 1px solid #27272a !important;
-    border-radius: 16px !important;
-    padding: 16px !important;
-    box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
-}
+print(f"==========================================")
+print(f"Initializing application...")
+print(f"==========================================")
 
-.input-panel .block, .input-panel textarea, .input-panel .input-image {
-     border-radius: 12px !important;
-}
+class ModelHandler:
+    def __init__(self, model_path):
+        self.model_path = model_path
+        self.model = None
+        self.processor = None
+        self._load_model()
 
-.primary-btn {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
-    border: none !important;
-    border-radius: 12px !important; 
-    font-weight: 600 !important;
-    transition: all 0.2s ease;
-}
-.primary-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-}
-"""
+    def _load_model(self):
+        try:
+            print(f"⏳ Loading model weights, this may take a few minutes...")
+            
+            self.processor = AutoProcessor.from_pretrained(self.model_path)
+            
+            self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+                self.model_path,
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                attn_implementation="flash_attention_2" if torch.cuda.is_available() and torch.cuda.get_device_capability()[0] >= 8 else "eager"
+            )
+            print("✅ Model loaded successfully!")
+        except Exception as e:
+            print(f"❌ Model loading failed: {e}")
+            raise e
 
-theme = gr.themes.Soft(
-    primary_hue="orange",
-    secondary_hue="zinc",
-    neutral_hue="zinc",
-    spacing_size="md",
-    radius_size="lg",
-    font=("Inter", "sans-serif"),
-    font_mono=("JetBrains Mono", "monospace"),
-).set(
-    body_background_fill="#121212",   
-    block_background_fill="#1e1e20",  
-    block_border_color="#2e2e32",     
-    input_background_fill="#27272a",  
-    block_radius="16px",         
-    container_radius="16px",     
-    input_radius="12px",         
-    button_large_radius="12px",  
-    block_border_width="1px",
-    body_text_color="#e4e4e7",
-    block_title_text_color="black",
-    input_placeholder_color="#71717a",
-)
+    def predict(self, message_dict, history, temperature, max_tokens):
+        text = message_dict.get("text", "")
+        files = message_dict.get("files", [])
 
-with gr.Blocks(title="Robust-R1", css=custom_css, theme=theme) as demo:
-    
-    with gr.Row():
-        with gr.Column(scale=1):
-            gr.HTML("""
-            <div style="text-align: center; padding: 10px 20px 10px;"> 
-                <h1 class="header-title" style="font-size: 2.8rem; margin-bottom: 0.5rem;">Robust-R1</h1>
-                <p style="color: #a1a1aa; font-size: 1.2em; margin-bottom: 12px;">Degradation-Aware Reasoning for Robust Visual Understanding</p>
-                
-                <div style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-                    <a href="#" target="_blank" style="text-decoration: none;">
-                        <img src="https://img.shields.io/badge/cs.CV-Paper-B31B1B?style=flat&logo=arxiv&logoColor=white" alt="Paper">
-                    </a>
-                    <a href="https://huggingface.co/Jiaqi-hkust/Robust-R1" target="_blank" style="text-decoration: none;">
-                        <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-FFD21E?style=flat" alt="Models">
-                    </a>
-                    <a href="https://huggingface.co/datasets/Jiaqi-hkust/Robust-R1" target="_blank" style="text-decoration: none;">
-                        <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Data-FFD21E?style=flat" alt="Data">
-                    </a>
-                </div>
-            </div>
-            """)
-
-    with gr.Row(equal_height=False, variant="default"): 
+        messages = []
         
-        with gr.Column(scale=2, elem_classes="input-panel"):
+        if history:
+            print(f"Processing {len(history)} previous messages from history")
+            for msg in history:
+                role = msg.get("role", "")
+                content = msg.get("content", "")
+                
+                if role == "user":
+                    user_content = []
+                    
+                    if isinstance(content, list):
+                        for item in content:
+                            if isinstance(item, str):
+                                if os.path.exists(item) or any(item.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']):
+                                    user_content.append({"type": "image", "image": item})
+                                else:
+                                    user_content.append({"type": "text", "text": item})
+                            elif isinstance(item, dict):
+                                user_content.append(item)
+                    elif isinstance(content, str):
+                        if content:
+                            user_content.append({"type": "text", "text": content})
+                    
+                    if user_content:
+                        messages.append({"role": "user", "content": user_content})
+                        
+                elif role == "assistant":
+                    if isinstance(content, str) and content:
+                        messages.append({"role": "assistant", "content": content})
+        
+        current_content = []
+        if files:
+            for file_path in files:
+                current_content.append({"type": "image", "image": file_path})
+        
+        if text:
+            sys_prompt_formatted = " ".join(sys_prompt.split())
+            full_text = f"{text}\n{sys_prompt_formatted}"
+            current_content.append({"type": "text", "text": full_text})
+        
+        if current_content:
+            messages.append({"role": "user", "content": current_content})
+        
+        print(f"Total messages for model: {len(messages)}")
+        print(f"Message roles: {[m['role'] for m in messages]}")
+
+        text_prompt = self.processor.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+        
+        image_inputs, video_inputs = process_vision_info(messages)
+        
+        inputs = self.processor(
+            text=[text_prompt],
+            images=image_inputs,
+            videos=video_inputs,
+            padding=True,
+            return_tensors="pt"
+        )
+        
+        inputs = inputs.to(self.model.device)
+
+        generation_kwargs = dict(
+            **inputs,
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+            do_sample=True if temperature > 0 else False,
+        )
+
+        try:
+            print("Starting model generation...")
+            with torch.no_grad():
+                generated_ids = self.model.generate(**generation_kwargs)
             
-            image_input = gr.Image(
-                type="pil",
-                label="Image Input",
-                height=320,
-                sources=["upload", "clipboard"],
-                show_download_button=False,
+            input_length = inputs['input_ids'].shape[1]
+            generated_ids = generated_ids[0][input_length:]
+            
+            print(f"Input length: {input_length}, Generated token count: {len(generated_ids)}")
+            
+            generated_text = self.processor.tokenizer.decode(
+                generated_ids, 
+                skip_special_tokens=True
             )
             
-            question_input = gr.Textbox(
-                label="Your Question",
-                placeholder="Ask something about the image...",
-                lines=3,
-                value="What do you see in this image?"
-            )
+            print(f"Generation completed. Output length: {len(generated_text)}, Content preview: {repr(generated_text[:200])}")
             
-            with gr.Accordion("⚙️ Generation Parameters", open=False):
-                max_tokens = gr.Slider(64, 2048, value=1024, step=64, label="Max Tokens")
-                temperature = gr.Slider(0.1, 1.0, value=0.7, step=0.1, label="Temperature")
+            if generated_text and generated_text.strip():
+                print(f"Yielding generated text: {generated_text[:100]}...")
+                yield generated_text
+            else:
+                warning_msg = "⚠️ No output generated. The model may not have produced any response."
+                print(warning_msg)
+                yield warning_msg
+                
+        except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            print(f"Error in model.generate: {error_details}")
+            yield f"❌ Generation error: {str(e)}"
+            return
 
-            with gr.Row(): 
-                clear_btn = gr.Button("Clear", variant="secondary", size="lg")
-                submit_btn = gr.Button("Run Analysis", variant="primary", size="lg", elem_classes="primary-btn")
+model_handler = ModelHandler(MODEL_PATH)
 
-        with gr.Column(scale=3):
-            with gr.Group():
-                gr.Markdown("### 🧠 Model Analysis Result", elem_id="output-header")
-                output = gr.Textbox(
-                    label="", 
-                    show_label=False,
-                    lines=25,
-                    interactive=False,
-                    show_copy_button=True,
-                    placeholder="Analysis results will appear here...",
-                    elem_classes="result-box"
+def create_chat_ui():
+    custom_css = """
+    .gradio-container { font-family: 'Inter', sans-serif; }
+    #chatbot { height: 650px !important; overflow-y: auto; }
+    """
+
+    with gr.Blocks(theme=gr.themes.Soft(), css=custom_css, title="Robust-R1") as demo:
+        
+        with gr.Row():
+            gr.Markdown("# 🤖Robust-R1:Degradation-Aware Reasoning for Robust Visual Understanding")
+
+        with gr.Row():
+            with gr.Column(scale=4):
+                chatbot = gr.Chatbot(
+                    elem_id="chatbot",
+                    label="Chat",
+                    type="messages",
+                    avatar_images=(None, "https://api.dicebear.com/7.x/bottts/svg?seed=Qwen"),
+                    height=650
+                )
+                
+                chat_input = gr.MultimodalTextbox(
+                    interactive=True,
+                    file_types=["image"],
+                    placeholder="Enter your question or upload an image...",
+                    show_label=False
                 )
 
-    submit_btn.click(
-        fn=inference,
-        inputs=[image_input, question_input, max_tokens, temperature],
-        outputs=output
-    )
-    
-    clear_btn.click(
-        fn=lambda: (None, "", 1024, 0.7, ""),
-        outputs=[image_input, question_input, max_tokens, temperature, output]
-    )
+            with gr.Column(scale=1):
+                with gr.Group():
+                    gr.Markdown("### ⚙️ Generation Config")
+                    temperature = gr.Slider(
+                        minimum=0.01, maximum=1.0, value=0.6, step=0.05, 
+                        label="Temperature"
+                    )
+                    max_tokens = gr.Slider(
+                        minimum=128, maximum=4096, value=1024, step=128, 
+                        label="Max New Tokens"
+                    )
+                
+                clear_btn = gr.Button("🗑️ Clear Context", variant="stop")
+
+        gr.Markdown("---")
+        gr.Markdown("### 📚 Examples")
+        gr.Markdown("Click the examples below to quickly fill the input box and start a conversation")
+        
+        example_images_dir = os.path.join(project_dir, "assets")
+        
+        examples_config = [
+            ("What type of vehicles are the people riding?\n0. trucks\n1. wagons\n2. jeeps\n3. cars\n", os.path.join(example_images_dir, "92.jpg")),
+            ("What is the giant fish in the air?\n0. blimp\n1. balloon\n2. kite\n3. sculpture\n", os.path.join(example_images_dir, "568.jpg")),
+        ]
+        
+        example_data = []
+        for text, img_path in examples_config:
+            if os.path.exists(img_path):
+                example_data.append({"text": text, "files": [img_path]})
+        
+        if example_data:
+            gr.Examples(
+                examples=example_data,
+                inputs=chat_input,
+                label="",
+                examples_per_page=3
+            )
+        else:
+            gr.Markdown("*No example images available, please manually upload images for testing*")
+        
+        async def respond(user_msg, history, temp, tokens):
+            text = user_msg.get("text", "").strip()
+            files = user_msg.get("files", [])
+            user_content = list(files)
+            if text: user_content.append(text)
+            
+            if not files and text: user_message = {"role": "user", "content": text}
+            else: user_message = {"role": "user", "content": user_content}
+            
+            history.append(user_message)
+            yield history, gr.MultimodalTextbox(value=None, interactive=False)
+
+            history.append({"role": "assistant", "content": ""})
+            
+            try:
+                previous_history = history[:-2] if len(history) >= 2 else []
+                
+                generated_text = ""
+                for chunk in model_handler.predict(user_msg, previous_history, temp, tokens):
+                    generated_text = chunk
+                    
+                    safe_text = html.escape(generated_text)
+                    safe_text = generated_text.replace("<", "&lt;").replace(">", "&gt;")
+                    
+                    history[-1]["content"] = safe_text
+                    yield history, gr.MultimodalTextbox(interactive=False)
+                    
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                history[-1]["content"] = f"❌ Inference error: {str(e)}"
+                yield history, gr.MultimodalTextbox(interactive=True)
+            
+            yield history, gr.MultimodalTextbox(value=None, interactive=True)
+            
+        chat_input.submit(
+            respond,
+            inputs=[chat_input, chatbot, temperature, max_tokens],
+            outputs=[chatbot, chat_input]
+        )
+
+        def clear_history(): return [], None
+        clear_btn.click(clear_history, outputs=[chatbot, chat_input])
+
+    return demo
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
+    demo = create_chat_ui()
+    
+    print(f"🚀 Service is starting, please visit: http://localhost:7862")
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=7862,
+        share=False,
+        show_error=True,
+        allowed_paths=[project_dir]
+    )
