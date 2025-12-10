@@ -69,6 +69,17 @@ and [Qifeng Chen](https://scholar.google.com/citations?hl=zh-CN&user=lLMX9hcAAAA
 
 ## ⏳ **Demo**
 
+### 🖥️ CLI Demo
+
+Run the command-line demo with a question:
+
+  ```bash
+  export MODEL_PATH="your_model_name_or_path"
+  python demo.py "What type of vehicles are the people riding?\n0. trucks\n1. wagons\n2. jeeps\n3. cars\n"
+  ```
+
+### 🌐 GUI Demo
+
 - Set the model path as an environment variable and run the demo:
 
   ```bash
@@ -199,8 +210,14 @@ For R-Bench evaluation, we use [R-Bench](https://github.com/Q-Future/R-Bench) to
 
 If you find Robust-R1 useful for your research and applications, please cite using this BibTeX:
    ``` latex
-   
+   @inproceedings{tang2025robustr1,
+     title={Robust-R1: Degradation-Aware Reasoning for Robust Visual Understanding},
+     author={Tang, Jiaqi and Chen, Jianmin and Wei, Wei and Xu, Xiaogang and Liu, Runtao and Wu, Xiangyu and Xie, Qipeng and Wu, Jiafei and Zhang, Lei and Chen, Qifeng},
+     booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+     year={2026},
+     note={Oral}
+   }
    ```
 ## 🤝 Acknowledgements
-We thank the authors of [VLM-R1](https://github.com/om-ai-lab/VLM-R1?tab=readme-ov-file) and [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) for their open-source contributions.
+We thank the authors of [VLM-R1](https://github.com/om-ai-lab/VLM-R1?tab=readme-ov-file), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), and [R-Bench](https://github.com/Q-Future/R-Bench) for their open-source contributions.
 
