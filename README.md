@@ -1,34 +1,37 @@
 <div align="center">
 
 # [AAAI 2026 Oral] Robust-R1: Degradation-Aware Reasoning for Robust Visual Understanding
+This is the official repository for Robust-R1.
 
 
-[Jiaqi Tang](https://jqt.me/), 
-[Jianmin Chen](), 
-[Wei Wei](https://scholar.google.com/citations?hl=zh-CN&user=v8KMYlwAAAAJ), 
+[Jiaqi Tang^](https://jqt.me/), 
+[Jianmin Chen^](), 
+\
+[Wei Wei**](https://scholar.google.com/citations?hl=zh-CN&user=v8KMYlwAAAAJ), 
 [Xiaogang Xu](https://xuxiaogang.com/), 
 [Runtao Liu](https://scholar.google.com/citations?hl=zh-CN&user=YHTvXF4AAAAJ), 
 [Xiangyu Wu](), 
 [Qipeng Xie](), 
 [Jiafei Wu](), 
-[Lei Zhang](https://scholar.google.com/citations?hl=zh-CN&user=0Kg6Gi4AAAAJ), 
-and [Qifeng Chen](https://scholar.google.com/citations?hl=zh-CN&user=lLMX9hcAAAAJ)
+[Lei Zhang](https://scholar.google.com/citations?hl=zh-CN&user=0Kg6Gi4AAAAJ) and 
+\
+[Qifeng Chen*](https://cqf.io)
 
-
+^: Equal contribution. *: Corresponding Author. **: Co-corresponding Author.
 
 [![Paper](https://img.shields.io/badge/cs.CV-Paper-b31b1b?style=flat&logo=arxiv&logoColor=white)](https://arxiv.org/abs/your-paper-id)
 [![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-ffd21e)](https://huggingface.co/Jiaqi-hkust/Robust-R1)
 [![HuggingFace](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Data-ffd21e)](https://huggingface.co/datasets/Jiaqi-hkust/Robust-R1)
-<!-- [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![YouTube](https://img.shields.io/badge/YouTube-Demo-c4302b?style=flat&logo=youtube&logoColor=white)](https://youtube.com/link-to-demo) -->
+[![made-for-VSCode](https://img.shields.io/badge/Made%20for-VSCode-1f425f.svg)](https://code.visualstudio.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
 </div>
 
-<br/>
-
----
 ## 📰 **News**
-- **[2025-12-01]** 🔥 We release the training code, [model weights](https://huggingface.co/Jiaqi-hkust/Robust-R1), and the [Dataset](https://huggingface.co/datasets/Jiaqi-hkust/Robust-R1) is now available on HuggingFace.
-- **[2025-11-08]** 🚀 Our paper is accepted by **AAAI 2026**!
+- **[2025-12-01]** 🔥 Online demo is now available at [HF Space](https://huggingface.co/spaces/Jiaqi-hkust/Robust-R1).
+- **[2025-12-01]** 🔥 We release the [Code](https://github.com/jqtangust/Robust-R1), [Models](https://huggingface.co/Jiaqi-hkust/Robust-R1), and [Dataset](https://huggingface.co/datasets/Jiaqi-hkust/Robust-R1) on HuggingFace.
+- **[2025-12-01]** ✅ Our paper is now available on [arXiv](https://arxiv.org/abs/your-paper-id).
+- **[2025-11-08]** 🚀 Our paper is accepted by **AAAI 2026 Oral**.
 
 
 ---
@@ -39,7 +42,7 @@ and [Qifeng Chen](https://scholar.google.com/citations?hl=zh-CN&user=lLMX9hcAAAA
 - 🚩 **Isolated Optimization**: Neglect of the degradation propagation relation between the visual encoder and large language model.
 
 <div align="center">
-  <img src="assets/Motivation.jpg" width="85%" alt="Method Overview">
+  <img src="assets/moti.png" width="85%" alt="Method Overview">
   <br>
 </div>
 
@@ -47,10 +50,16 @@ and [Qifeng Chen](https://scholar.google.com/citations?hl=zh-CN&user=lLMX9hcAAAA
 
 ## 🛠️ **Installation**
 
-**Create environment:**
+- **Clone the repository:**
    ```bash
-   conda create -n your_env_name python=3.10
-   conda activate your_env_name
+   git clone https://github.com/jqtangust/Robust-R1.git
+   cd Robust-R1
+   ```
+
+- **Create environment:**
+   ```bash
+   conda create -n robust_r1 python=3.10
+   conda activate robust_r1
    bash setup.sh
    ```
 ---
@@ -71,10 +80,12 @@ and [Qifeng Chen](https://scholar.google.com/citations?hl=zh-CN&user=lLMX9hcAAAA
 
 ### 🖥️ CLI Demo
 
-Run the command-line demo with a question:
+- Run the command-line demo with a question:
 
   ```bash
+  # if you use local weight
   export MODEL_PATH="your_model_name_or_path"
+
   python demo.py "What type of vehicles are the people riding?\n0. trucks\n1. wagons\n2. jeeps\n3. cars\n"
   ```
 
@@ -83,7 +94,9 @@ Run the command-line demo with a question:
 - Set the model path as an environment variable and run the demo:
 
   ```bash
+  # if you use local weight
   export MODEL_PATH="your_model_name_or_path"
+  
   python app.py
   ```
 
@@ -97,7 +110,7 @@ Run the command-line demo with a question:
 
 ---
 
-## 🧠 Training
+## 🧠 **Training**
 
 ### 🎓 Supervised Fine-Tuning
 
@@ -214,10 +227,12 @@ If you find Robust-R1 useful for your research and applications, please cite usi
      title={Robust-R1: Degradation-Aware Reasoning for Robust Visual Understanding},
      author={Tang, Jiaqi and Chen, Jianmin and Wei, Wei and Xu, Xiaogang and Liu, Runtao and Wu, Xiangyu and Xie, Qipeng and Wu, Jiafei and Zhang, Lei and Chen, Qifeng},
      booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
-     year={2026},
-     note={Oral}
+     year={2026}
    }
    ```
+
 ## 🤝 Acknowledgements
-We thank the authors of [VLM-R1](https://github.com/om-ai-lab/VLM-R1?tab=readme-ov-file), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), and [R-Bench](https://github.com/Q-Future/R-Bench) for their open-source contributions.
+The work described in this paper was supported by a grant from the Research Grants Council of the Hong Kong Special Administrative Region, China (Project Reference Number: AoE/E-601/24-N).
+
+We also thank the authors of [VLM-R1](https://github.com/om-ai-lab/VLM-R1?tab=readme-ov-file), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), and [R-Bench](https://github.com/Q-Future/R-Bench) for their contributions.
 
