@@ -184,11 +184,14 @@ tb_logs/
 # Image files (uncomment if you don't want to track large image datasets)
 # *.jpg
 # *.jpeg
-# *.png
 # *.gif
 # *.bmp
 # *.tiff
 # *.webp
+# Allow PNG files in assets directory
+!assets/**/*.png
+!assets/**/*.jpg
+!assets/**/*.jpeg
 
 # Temporary files
 *.tmp
