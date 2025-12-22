@@ -28,9 +28,9 @@ This is the official repository for Robust-R1.
 </div>
 
 ## 📰 **News**
-- **[2025-12-01]** 🔥 Online demo is now available at [HF Space](https://huggingface.co/spaces/Jiaqi-hkust/Robust-R1).
-- **[2025-12-01]** 🔥 We release the [Code](https://github.com/jqtangust/Robust-R1), [Models](https://huggingface.co/Jiaqi-hkust/Robust-R1), and [Dataset](https://huggingface.co/datasets/Jiaqi-hkust/Robust-R1) on HuggingFace.
-- **[2025-12-01]** ✅ Our paper is now available on [arXiv](https://arxiv.org/abs/your-paper-id).
+- **[2025-12-23]** 🔥 Online demo is now available at [HF Space](https://huggingface.co/spaces/Jiaqi-hkust/Robust-R1).
+- **[2025-12-23]** 🔥 We release the [Code](https://github.com/jqtangust/Robust-R1), [Models](https://huggingface.co/Jiaqi-hkust/Robust-R1), and [Dataset](https://huggingface.co/datasets/Jiaqi-hkust/Robust-R1) on HuggingFace.
+- **[2025-12-22]** ✅ Our paper is now available on [arXiv](https://arxiv.org/abs/your-paper-id).
 - **[2025-11-08]** 🚀 Our paper is accepted by **AAAI 2026 Oral**.
 
 
