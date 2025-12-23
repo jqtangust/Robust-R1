@@ -3,7 +3,6 @@
 # [AAAI 2026 Oral] Robust-R1: Degradation-Aware Reasoning for Robust Visual Understanding
 This is the official repository for Robust-R1.
 
-
 [Jiaqi Tang^](https://jqt.me/), 
 [Jianmin Chen^](), 
 \
