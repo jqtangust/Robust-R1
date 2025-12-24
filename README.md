@@ -4,7 +4,7 @@
 This is the official repository for Robust-R1.
 
 [Jiaqi Tang^](https://jqt.me/), 
-[Jianmin Chen^](), 
+[Jianmin Chen^](https://github.com/Ch921-cell), 
 \
 [Wei Wei**](https://scholar.google.com/citations?hl=zh-CN&user=v8KMYlwAAAAJ), 
 [Xiaogang Xu](https://xuxiaogang.com/), 
