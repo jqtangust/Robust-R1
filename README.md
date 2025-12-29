@@ -9,7 +9,7 @@ This is the official repository for Robust-R1.
 [Wei Wei**](https://scholar.google.com/citations?hl=zh-CN&user=v8KMYlwAAAAJ), 
 [Xiaogang Xu](https://xuxiaogang.com/), 
 [Runtao Liu](https://scholar.google.com/citations?hl=zh-CN&user=YHTvXF4AAAAJ), 
-[Xiangyu Wu](), 
+[Xiangyu Wu](https://scholar.google.com/citations?user=R0GjVWIAAAAJ&hl=en), 
 [Qipeng Xie](), 
 [Jiafei Wu](), 
 [Lei Zhang](https://scholar.google.com/citations?hl=zh-CN&user=0Kg6Gi4AAAAJ) and 
