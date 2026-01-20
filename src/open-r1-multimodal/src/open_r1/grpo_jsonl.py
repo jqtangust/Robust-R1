@@ -920,8 +920,6 @@ SYSTEM_PROMPT = (
 def get_vlm_module(model_name_or_path):
     if "qwen" in model_name_or_path.lower():
         return Qwen2VLModule
-    elif "internvl" in model_name_or_path.lower():
-        return InvernVLModule
     else:
         raise ValueError(f"Unsupported model: {model_name_or_path}")
 
